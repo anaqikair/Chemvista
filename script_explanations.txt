@@ -1,0 +1,21 @@
+Here is an explanation of what each script in the ChemVista project does:
+
+--- Root Files ---
+App.jsx: The main entry point and routing component of the application. It manages the global state including user progress, active tab (navigation), and the theme (light/dark mode). It acts as the container that renders all other screens based on the current selection.
+App.css: Contains the specific styles, animations (like floating or orbiting elements), and layout utilities for the main App component.
+main.jsx: The foundational React script that mounts the App component into the HTML DOM (root element).
+index.css: Contains global CSS styles, variables (like colors and themes), and default resets used across the entire application.
+
+--- Components (src/components) ---
+Header.jsx: The top navigation bar component. It displays the app logo and provides navigation buttons to switch between different modules (Home, Settings, Progress, etc.), as well as a button to toggle the light/dark theme.
+Footer.jsx: A simple footer component displayed at the bottom of the application.
+AtomicBasicsGuide.jsx: An educational guide component that teaches users the fundamentals of atomic structure, focusing on concepts like duplet and octet stability before they start building bonds.
+IonicBonding.jsx: An interactive simulation module focused on Ionic Bonding. It allows users to drag and drop electrons between metals and non-metals to simulate electron transfer and form ionic compounds.
+CovalentBonding.jsx: An interactive simulation module focused on Covalent Bonding. It lets users select elements and share their valence electrons to build molecules, completing their outer shells.
+SandboxMode.jsx: A free-form "sandbox" experiment mode. It allows users to freely combine different elements without the strict step-by-step guidance of the standard bonding modules, encouraging exploration.
+InteractiveQuiz.jsx: A quiz module that tests the user's knowledge on chemical bonding concepts after they have gone through the guides and simulations. It keeps track of the score.
+ProgressDashboard.jsx: A dashboard that visualizes the user's learning progress, showing which modules they have completed and their highest quiz scores.
+Achievements.jsx: A screen that displays badges or achievements the user has unlocked by completing challenges and milestones in the app.
+
+--- Utilities (src/utils) ---
+audio.js: A utility script that handles all the sound effects in the game (e.g., button clicks, successful bonds, error sounds, etc.). It exports functions to easily play these sounds from any component.
