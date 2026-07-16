@@ -1,6 +1,6 @@
-import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon } from 'lucide-react';
+import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone } from 'lucide-react';
 
-export default function Header({ activeTab, setActiveTab, theme, toggleTheme }) {
+export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mobileMode, toggleMobileMode }) {
 
   return (
     <header className="glass" style={{
@@ -86,6 +86,28 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme }) 
           background: 'var(--border-color)',
           margin: '0 8px'
         }} />
+
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={toggleMobileMode}
+          className="btn"
+          style={{
+            background: mobileMode ? 'var(--accent-gradient)' : 'var(--bg-input)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '50%',
+            width: '38px',
+            height: '38px',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: mobileMode ? 'white' : 'var(--text-main)',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+          title={mobileMode ? 'Tutup Mod Mudah Alih' : 'Buka Mod Mudah Alih'}
+        >
+          <Smartphone size={18} color={mobileMode ? 'white' : 'var(--accent-blue)'} />
+        </button>
 
         {/* Theme Toggle Button */}
         <button

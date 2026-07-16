@@ -1,4 +1,18 @@
 /* ChemVista Layout Styles */
+.mobile-scale-container {
+  transform: scale(0.38);
+  transform-origin: top left;
+  width: 263.15%; /* 100 / 0.38 */
+  min-height: 263.15%;
+}
+
+@media (min-width: 1024px) {
+  .mobile-scale-container {
+    transform: scale(1);
+    width: 100%;
+    min-height: 100%;
+  }
+}
 .app-container {
   display: flex;
   flex-direction: column;

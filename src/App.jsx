@@ -15,6 +15,7 @@ import './App.css';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, challenge, sandbox, guide, quiz
   const [theme, setTheme] = useState(() => localStorage.getItem('chemvista_theme') || 'dark');
+  const [mobileMode, setMobileMode] = useState(false);
   
   // Progress states
   const [userProgress, setUserProgress] = useState(() => {
@@ -264,9 +265,11 @@ export default function App() {
 
   return (
     <div id="root">
-      <Header activeTab={activeTab} setActiveTab={handleMenuClick} theme={theme} toggleTheme={toggleTheme} />
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {renderScreen()}
+      <Header activeTab={activeTab} setActiveTab={handleMenuClick} theme={theme} toggleTheme={toggleTheme} mobileMode={mobileMode} toggleMobileMode={() => setMobileMode(!mobileMode)} />
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
+        <div className={mobileMode ? 'mobile-scale-container' : ''} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {renderScreen()}
+        </div>
       </main>
       <Footer />
     </div>
