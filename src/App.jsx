@@ -8,14 +8,20 @@ import SandboxMode from './components/SandboxMode';
 import InteractiveQuiz from './components/InteractiveQuiz';
 import ProgressDashboard from './components/ProgressDashboard';
 import Achievements from './components/Achievements';
+import TeacherDashboard from './components/TeacherDashboard';
+import StudentAuth from './components/StudentAuth';
 import { Compass, Atom, HelpCircle, FlaskConical, BookOpen, Trophy } from 'lucide-react';
 import { sounds } from './utils/audio';
 import './App.css';
 
+import { supabase } from './supabaseClient';
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, challenge, sandbox, guide, quiz
+  const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, challenge, sandbox, guide, quiz, student_login
   const [theme, setTheme] = useState(() => localStorage.getItem('chemvista_theme') || 'dark');
   const [mobileMode, setMobileMode] = useState(false);
+  const [studentName, setStudentName] = useState(() => localStorage.getItem('chemvista_student_name') || '');
+  const [currentStudent, setCurrentStudent] = useState(null);
   
   // Progress states
   const [userProgress, setUserProgress] = useState(() => {
@@ -34,10 +40,29 @@ export default function App() {
     localStorage.setItem('chemvista_theme', theme);
   }, [theme]);
 
-  // Sync progress
+  // Sync progress to LocalStorage & Supabase
   useEffect(() => {
     localStorage.setItem('chemvista_progress', JSON.stringify(userProgress));
-  }, [userProgress]);
+    localStorage.setItem('chemvista_student_name', studentName);
+
+    if (studentName.trim().length > 0) {
+      syncToSupabase(studentName, userProgress);
+    }
+  }, [userProgress, studentName]);
+
+  const syncToSupabase = async (name, progress) => {
+    try {
+      await supabase.from('student_progress').upsert({
+        student_name: name,
+        ionic_completed: progress.ionicCompleted,
+        covalent_completed: progress.covalentCompleted,
+        quiz_score: progress.quizHighScore,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'student_name' });
+    } catch (err) {
+      console.warn('Supabase sync warning:', err);
+    }
+  };
 
   const toggleTheme = () => {
     sounds.playElectron();
@@ -84,6 +109,27 @@ export default function App() {
     setActiveTab(tabId);
   };
 
+  const handleStudentLoggedIn = (studentObj) => {
+    if (!studentObj) {
+      setStudentName('');
+      localStorage.removeItem('chemvista_student_name');
+      return;
+    }
+
+    const { name, data } = studentObj;
+    setStudentName(name);
+    localStorage.setItem('chemvista_student_name', name);
+
+    if (data) {
+      setUserProgress(prev => ({
+        ...prev,
+        ionicCompleted: data.ionic_completed || prev.ionicCompleted,
+        covalentCompleted: data.covalent_completed || prev.covalentCompleted,
+        quizHighScore: Math.max(prev.quizHighScore || 0, data.quiz_score || 0)
+      }));
+    }
+  };
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'home':
@@ -102,11 +148,15 @@ export default function App() {
           setUserProgress(prev => ({ ...prev, quizHighScore: Math.max(prev.quizHighScore, score) }));
         }} />;
       case 'progress':
-        return <ProgressDashboard userProgress={userProgress} onResetProgress={resetAllProgress} />;
+        return <ProgressDashboard userProgress={userProgress} onResetProgress={resetAllProgress} studentName={studentName} setStudentName={setStudentName} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
       case 'settings':
         return renderSettingsScreen();
+      case 'student_login':
+        return <StudentAuth onStudentLoggedIn={handleStudentLoggedIn} currentStudentName={studentName} />;
+      case 'teacher_dashboard':
+        return <TeacherDashboard />;
       default:
         return renderHomeScreen();
     }

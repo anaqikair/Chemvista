@@ -1,6 +1,6 @@
-import { BookOpen, Trophy, RefreshCw, Percent } from 'lucide-react';
+import { BookOpen, Trophy, RefreshCw, Percent, UserCheck, Cloud } from 'lucide-react';
 
-export default function ProgressDashboard({ userProgress, onResetProgress }) {
+export default function ProgressDashboard({ userProgress, onResetProgress, studentName, setStudentName }) {
   const totalLessons = 2;
   const completedLessons = (userProgress.ionicCompleted ? 1 : 0) + (userProgress.covalentCompleted ? 1 : 0);
   const lessonsProgressPercent = Math.round((completedLessons / totalLessons) * 100);
@@ -24,6 +24,28 @@ export default function ProgressDashboard({ userProgress, onResetProgress }) {
         <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
           Jejak status pembelajaran anda, pencapaian modul, dan keputusan kuiz.
         </p>
+      </div>
+
+      {/* Student Session Banner */}
+      <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', background: 'var(--bg-card)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: 'var(--accent-gradient)', padding: '10px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <UserCheck size={18} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-main)' }}>
+              Status Pelajar: {studentName ? <span style={{ color: 'var(--accent-blue)' }}>{studentName}</span> : <span style={{ color: 'var(--text-muted)' }}>Luar Talian / Belum Log Masuk</span>}
+            </h4>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
+              {studentName ? 'Kemajuan anda akan disinkronkan secara automatik ke Papan Pemuka Guru.' : 'Log masuk di tab Log Masuk Pelajar untuk menyimpan rekod anda.'}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: studentName ? 'var(--color-stable)' : 'var(--color-warning)', fontWeight: 600 }}>
+          <Cloud size={18} />
+          <span>{studentName ? 'Supabase Disinkronkan' : 'Mod Tempatan'}</span>
+        </div>
       </div>
 
       {/* Stats Cards grid */}

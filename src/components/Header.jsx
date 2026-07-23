@@ -1,4 +1,4 @@
-import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone } from 'lucide-react';
+import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone, User } from 'lucide-react';
 
 export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mobileMode, toggleMobileMode }) {
 
@@ -49,8 +49,10 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
       <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {[
           { id: 'home', label: 'Utama', icon: Home },
+          { id: 'student_login', label: 'Log Masuk Pelajar', icon: User },
           { id: 'progress', label: 'Kemajuan', icon: BarChart2 },
           { id: 'achievements', label: 'Pencapaian', icon: Trophy },
+          { id: 'teacher_dashboard', label: 'Guru', icon: BarChart2 },
           { id: 'settings', label: 'Tetapan', icon: Settings },
         ].map((item) => {
           const Icon = item.icon;
