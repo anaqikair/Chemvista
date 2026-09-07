@@ -1,6 +1,8 @@
-import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone, User } from 'lucide-react';
+import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone, User, Globe } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mobileMode, toggleMobileMode }) {
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <header className="glass" style={{
@@ -37,10 +39,10 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
             fontWeight: 800, 
             letterSpacing: '-0.5px' 
           }} className="gradient-text">
-            ChemVista
+            {t('appName')}
           </span>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500, marginTop: '-3px' }}>
-            IKATAN KIMIA KSSM
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '-3px', letterSpacing: '0.5px' }}>
+            {t('appSub')}
           </div>
         </div>
       </div>
@@ -48,12 +50,12 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
       {/* Navigation Links */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {[
-          { id: 'home', label: 'Utama', icon: Home },
-          { id: 'student_login', label: 'Log Masuk Pelajar', icon: User },
-          { id: 'progress', label: 'Kemajuan', icon: BarChart2 },
-          { id: 'achievements', label: 'Pencapaian', icon: Trophy },
-          { id: 'teacher_dashboard', label: 'Guru', icon: BarChart2 },
-          { id: 'settings', label: 'Tetapan', icon: Settings },
+          { id: 'home', label: t('navHome'), icon: Home },
+          { id: 'student_login', label: t('navStudentLogin'), icon: User },
+          { id: 'progress', label: t('navProgress'), icon: BarChart2 },
+          { id: 'achievements', label: t('navAchievements'), icon: Trophy },
+          { id: 'teacher_dashboard', label: t('navTeacher'), icon: BarChart2 },
+          { id: 'settings', label: t('navSettings'), icon: Settings },
         ].map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -86,8 +88,32 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
           height: '24px',
           width: '1px',
           background: 'var(--border-color)',
-          margin: '0 8px'
+          margin: '0 4px'
         }} />
+
+        {/* Language Switcher Button */}
+        <button
+          onClick={() => setLanguage(language === 'ms' ? 'en' : 'ms')}
+          className="btn"
+          style={{
+            background: 'var(--bg-input)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '20px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 700,
+            color: 'var(--accent-blue)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer'
+          }}
+          title={t('langToggle')}
+        >
+          <Globe size={15} color="var(--accent-blue)" />
+          <span>{language === 'ms' ? 'BM' : 'EN'}</span>
+        </button>
 
         {/* Mobile Toggle Button */}
         <button
@@ -106,7 +132,7 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
             color: mobileMode ? 'white' : 'var(--text-main)',
             boxShadow: 'var(--shadow-sm)'
           }}
-          title={mobileMode ? 'Tutup Mod Mudah Alih' : 'Buka Mod Mudah Alih'}
+          title={mobileMode ? t('toggleMobileOff') : t('toggleMobileOn')}
         >
           <Smartphone size={18} color={mobileMode ? 'white' : 'var(--accent-blue)'} />
         </button>
@@ -128,7 +154,7 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
             color: 'var(--text-main)',
             boxShadow: 'var(--shadow-sm)'
           }}
-          title={theme === 'dark' ? 'Tukar ke Mod Cerah' : 'Tukar ke Mod Gelap'}
+          title={theme === 'dark' ? t('toggleLight') : t('toggleDark')}
         >
           {theme === 'dark' ? <Sun size={18} color="var(--color-warning)" /> : <Moon size={18} color="var(--accent-purple)" />}
         </button>

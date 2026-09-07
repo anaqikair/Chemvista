@@ -1604,7 +1604,7 @@ export default function IonicBonding({ onActionCompleted }) {
               position: 'relative',
               width: '100%',
               height: `${sceneLayout.sceneHeight}px`,
-              background: 'rgba(10, 15, 30, 0.65)',
+              background: 'var(--bg-canvas)',
               border: '2px solid var(--border-color)',
               borderRadius: '16px',
               overflow: 'hidden'
@@ -1702,7 +1702,7 @@ export default function IonicBonding({ onActionCompleted }) {
                 className="glass-card"
                 style={{
                   padding: '10px 18px',
-                  background: 'rgba(7, 10, 19, 0.92)',
+                  background: 'var(--bg-card)',
                   display: 'inline-block',
                   borderRadius: '8px',
                   maxWidth: 'calc(100% - 70px)'
@@ -1713,7 +1713,7 @@ export default function IonicBonding({ onActionCompleted }) {
                     margin: 0,
                     fontSize: '15px',
                     fontWeight: 800,
-                    color: 'white'
+                    color: 'var(--text-main)'
                   }}
                 >
                   {!allElectronsTransferred
@@ -1774,7 +1774,7 @@ export default function IonicBonding({ onActionCompleted }) {
                   margin: 0,
                   fontSize: '15px',
                   fontWeight: 700,
-                  color: 'white'
+                  color: 'var(--text-main)'
                 }}
               >
                 {feedback}

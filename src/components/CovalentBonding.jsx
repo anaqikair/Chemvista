@@ -2100,9 +2100,8 @@ export default function CovalentBonding({ onActionCompleted }) {
             border: '1.5px solid var(--border-color)',
             borderRadius: '20px',
             overflow: 'hidden',
-            background:
-              'radial-gradient(circle at center, rgba(17,24,39,0.96) 0%, rgba(7,12,25,0.995) 100%)',
-            boxShadow: '0 12px 34px rgba(0,0,0,0.42)'
+            background: 'var(--bg-canvas)',
+            boxShadow: 'var(--shadow-md)'
           }}
         >
           <svg
@@ -2435,9 +2434,9 @@ export default function CovalentBonding({ onActionCompleted }) {
                     width: '100%',
                     padding: '11px 17px',
                     borderRadius: '11px',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--border-color)',
                     borderLeft: '4px solid var(--accent-purple)',
-                    background: 'rgba(4,8,18,0.93)',
+                    background: 'var(--bg-card)',
                     color: 'var(--text-main)',
                     fontSize: '13px',
                     fontWeight: 760,

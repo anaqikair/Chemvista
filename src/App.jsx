@@ -10,18 +10,19 @@ import ProgressDashboard from './components/ProgressDashboard';
 import Achievements from './components/Achievements';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentAuth from './components/StudentAuth';
-import { Compass, Atom, HelpCircle, FlaskConical, BookOpen, Trophy } from 'lucide-react';
+import { Compass, Atom, HelpCircle, FlaskConical, BookOpen, Globe } from 'lucide-react';
 import { sounds } from './utils/audio';
+import { useLanguage } from './context/LanguageContext';
 import './App.css';
 
 import { supabase } from './supabaseClient';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, challenge, sandbox, guide, quiz, student_login
-  const [theme, setTheme] = useState(() => localStorage.getItem('chemvista_theme') || 'dark');
+  const { language, setLanguage, t } = useLanguage();
+  const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, sandbox, guide, quiz, student_login, teacher_dashboard
+  const [theme, setTheme] = useState(() => localStorage.getItem('chemvista_theme') || 'light');
   const [mobileMode, setMobileMode] = useState(false);
   const [studentName, setStudentName] = useState(() => localStorage.getItem('chemvista_student_name') || '');
-  const [currentStudent, setCurrentStudent] = useState(null);
   
   // Progress states
   const [userProgress, setUserProgress] = useState(() => {
@@ -79,19 +80,9 @@ export default function App() {
     });
   };
 
-  const handleChallengeSolved = (challengeId) => {
-    setUserProgress(prev => {
-      if (prev.challengesSolved.includes(challengeId)) return prev;
-      return {
-        ...prev,
-        challengesSolved: [...prev.challengesSolved, challengeId]
-      };
-    });
-  };
-
   const resetAllProgress = () => {
     sounds.playError();
-    if (window.confirm('Adakah anda pasti mahu memadamkan semua data kemajuan dan markah kuiz anda?')) {
+    if (window.confirm(t('resetConfirmText'))) {
       const clean = {
         ionicCompleted: false,
         covalentCompleted: false,
@@ -164,11 +155,11 @@ export default function App() {
 
   const renderHomeScreen = () => {
     const menus = [
-      { id: 'ionic', title: 'Ikatan Ionik', desc: 'Teroka pemindahan elektron.', icon: Compass, color: 'var(--accent-blue)' },
-      { id: 'covalent', title: 'Ikatan Kovalen', desc: 'Bina molekul dengan perkongsian.', icon: Atom, color: 'var(--accent-purple)' },
-      { id: 'sandbox', title: 'Eksperimen Bebas', desc: 'Gabung sebarang unsur kegemaran anda.', icon: FlaskConical, color: 'var(--accent-cyan)' },
-      { id: 'guide', title: 'Asas Atom', desc: 'Fahami kestabilan duplet & oktet.', icon: BookOpen, color: 'var(--color-almost)' },
-      { id: 'quiz', title: 'Kuiz Interaktif', desc: 'Uji pemahaman tentang ikatan kimia.', icon: HelpCircle, color: 'var(--color-unstable)' }
+      { id: 'ionic', title: t('ionicTitle'), desc: t('ionicDesc'), icon: Compass, color: 'var(--accent-blue)' },
+      { id: 'covalent', title: t('covalentTitle'), desc: t('covalentDesc'), icon: Atom, color: 'var(--accent-purple)' },
+      { id: 'sandbox', title: t('sandboxTitle'), desc: t('sandboxDesc'), icon: FlaskConical, color: 'var(--accent-cyan)' },
+      { id: 'guide', title: t('guideTitle'), desc: t('guideDesc'), icon: BookOpen, color: 'var(--color-almost)' },
+      { id: 'quiz', title: t('quizTitle'), desc: t('quizDesc'), icon: HelpCircle, color: 'var(--color-unstable)' }
     ];
 
     return (
@@ -229,10 +220,10 @@ export default function App() {
         {/* Hero title & Tagline */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 className="gradient-text" style={{ fontSize: '52px', fontWeight: 900, letterSpacing: '-1.5px', margin: '0 0 8px 0' }}>
-            ChemVista
+            {t('appName')}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '18px', fontWeight: 500, letterSpacing: '0.5px' }}>
-            "See Chemical Bonds Come Alive"
+            {t('homeTagline')}
           </p>
         </div>
 
@@ -291,21 +282,64 @@ export default function App() {
     return (
       <div className="screen-container" style={{ padding: '20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h1 className="gradient-text" style={{ fontSize: '32px', fontWeight: 800 }}>Tetapan Makmal</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Suaikan pengalaman pembelajaran ChemVista anda.</p>
+          <h1 className="gradient-text" style={{ fontSize: '32px', fontWeight: 800 }}>{t('settingsTitle')}</h1>
+          <p style={{ color: 'var(--text-muted)' }}>{t('settingsSub')}</p>
         </div>
 
         <div className="glass-card" style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Theme Toggle */}
           <div className="flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-            <strong>Mod Gelap / Cerah</strong>
-            <button className="gradient-btn" onClick={toggleTheme} style={{ padding: '8px 16px', borderRadius: '8px' }}>
-              {theme === 'dark' ? 'Cerah' : 'Gelap'}
+            <strong style={{ color: 'var(--text-main)' }}>{t('themeLabel')}</strong>
+            <button className="btn btn-primary" onClick={toggleTheme} style={{ padding: '8px 16px', borderRadius: '8px' }}>
+              {theme === 'dark' ? t('themeLightBtn') : t('themeDarkBtn')}
             </button>
           </div>
+
+          {/* Language Toggle */}
+          <div className="flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Globe size={18} color="var(--accent-blue)" />
+              <strong style={{ color: 'var(--text-main)' }}>{t('languageLabel')}</strong>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => setLanguage('ms')}
+                className="btn"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  background: language === 'ms' ? 'var(--accent-gradient)' : 'var(--bg-input)',
+                  color: language === 'ms' ? 'white' : 'var(--text-main)',
+                  border: '1px solid var(--border-color)'
+                }}
+              >
+                {t('langMalay')}
+              </button>
+              <button 
+                onClick={() => setLanguage('en')}
+                className="btn"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  background: language === 'en' ? 'var(--accent-gradient)' : 'var(--bg-input)',
+                  color: language === 'en' ? 'white' : 'var(--text-main)',
+                  border: '1px solid var(--border-color)'
+                }}
+              >
+                {t('langEnglish')}
+              </button>
+            </div>
+          </div>
+
+          {/* Reset Progress */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong>Padam Seluruh Progress</strong>
-            <button className="gradient-btn" onClick={resetAllProgress} style={{ background: 'var(--color-unstable)', boxShadow: '0 0 15px rgba(239,68,68,0.2)', padding: '8px 16px', borderRadius: '8px' }}>
-              Padam Data
+            <strong style={{ color: 'var(--text-main)' }}>{t('resetProgressLabel')}</strong>
+            <button className="btn btn-danger" onClick={resetAllProgress} style={{ padding: '8px 16px', borderRadius: '8px' }}>
+              {t('resetProgressBtn')}
             </button>
           </div>
         </div>

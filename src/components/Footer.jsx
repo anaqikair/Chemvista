@@ -1,6 +1,9 @@
 import { BookOpen } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="glass" style={{
       marginTop: 'auto',
@@ -17,13 +20,13 @@ export default function Footer() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <BookOpen size={16} color="var(--accent-blue)" />
-        <span>KSSM Kimia Tingkatan 4 • Bab 5: Ikatan Kimia</span>
+        <span>{t('footerSyllabus')}</span>
       </div>
       <div>
-        <span>Versi 1.0.0 (Stabil)</span>
+        <span>{t('footerVersion')}</span>
       </div>
       <div>
-        <span>Hak Cipta Terpelihara © {new Date().getFullYear()} • <strong>ChemVista</strong></span>
+        <span>{t('footerRights')} {new Date().getFullYear()} • <strong>ChemVista</strong></span>
       </div>
     </footer>
   );

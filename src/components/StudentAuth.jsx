@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, LogIn, AlertCircle, CheckCircle2, LogOut, Sparkles, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
+  const { t, language } = useLanguage();
   const [studentNameInput, setStudentNameInput] = useState(currentStudentName || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,7 +21,7 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
     const cleanName = studentNameInput.trim();
 
     if (!cleanName) {
-      setError('Sila masukkan nama atau ID pelajar anda.');
+      setError(t('emptyError'));
       return;
     }
 
@@ -28,7 +30,6 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
     setMessage(null);
 
     try {
-      // Fetch or insert student progress row in Supabase
       const { data, error: fetchError } = await supabase
         .from('student_progress')
         .select('*')
@@ -40,10 +41,11 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
       }
 
       if (data) {
-        setMessage(`Selamat kembali, ${cleanName}! Rekod pembelajaran anda telah dimuatkan dari Supabase.`);
+        setMessage(language === 'en' 
+          ? `Welcome back, ${cleanName}! Your learning record has been loaded from Supabase.` 
+          : `Selamat kembali, ${cleanName}! Rekod pembelajaran anda telah dimuatkan dari Supabase.`);
         onStudentLoggedIn({ name: cleanName, data });
       } else {
-        // Create new record in Supabase
         const newRecord = {
           student_name: cleanName,
           ionic_completed: false,
@@ -58,15 +60,15 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
 
         if (insertError) {
           console.warn('Supabase insert warning:', insertError);
-          // Fallback if table constraints exist
         }
 
-        setMessage(`Akaun pelajar "${cleanName}" berjaya didaftarkan! Kemajuan anda sedia disinkronkan.`);
+        setMessage(language === 'en'
+          ? `Student account "${cleanName}" registered successfully! Your progress is ready to sync.`
+          : `Akaun pelajar "${cleanName}" berjaya didaftarkan! Kemajuan anda sedia disinkronkan.`);
         onStudentLoggedIn({ name: cleanName, data: newRecord });
       }
     } catch (err) {
-      setError('Terdapat masalah menyambung ke Supabase. Sila pastikan sambungan internet aktif.');
-      // Still log them in locally as fallback
+      setError(t('supabaseConnError'));
       onStudentLoggedIn({ name: cleanName, data: null });
     } finally {
       setLoading(false);
@@ -87,17 +89,17 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
           <div style={{ background: 'var(--accent-gradient)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 0 20px var(--accent-glow)' }}>
             <ShieldCheck size={32} color="white" />
           </div>
-          <h2 className="gradient-text" style={{ fontSize: '26px', fontWeight: 800 }}>Akaun Pelajar Aktif</h2>
+          <h2 className="gradient-text" style={{ fontSize: '26px', fontWeight: 800 }}>{t('activeStudentTitle')}</h2>
           <p style={{ fontSize: '18px', color: 'var(--text-main)', fontWeight: 700, margin: '8px 0' }}>
             {currentStudentName}
           </p>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>
-            Akaun anda telah tersambung ke sistem Supabase. Setiap modul yang anda lengkapkan (Ikatan Ionik, Ikatan Kovalen) dan markah kuiz anda disinkronkan secara automatik ke Papan Pemuka Guru.
+            {t('activeStudentDesc')}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
             <button onClick={handleLogout} className="btn" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--color-unstable)', color: 'var(--color-unstable)', padding: '12px 24px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-              <LogOut size={16} /> Log Keluar / Tukar Pelajar
+              <LogOut size={16} /> {t('logoutBtn')}
             </button>
           </div>
         </div>
@@ -113,10 +115,10 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
             <Sparkles size={30} color="white" />
           </div>
           <h2 className="gradient-text" style={{ fontSize: '26px', fontWeight: 800 }}>
-            Log Masuk Pelajar
+            {t('loginTitle')}
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>
-            Masukkan nama penuh anda untuk mula atau menyambung rekod pembelajaran di Supabase.
+            {t('loginDesc')}
           </p>
         </div>
 
@@ -136,19 +138,19 @@ export default function StudentAuth({ onStudentLoggedIn, currentStudentName }) {
 
         <form onSubmit={handleStudentLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-main)', fontWeight: 600 }}>Nama Penuh / ID Pelajar</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-main)', fontWeight: 600 }}>{t('labelName')}</label>
             <input
               type="text"
               required
               value={studentNameInput}
               onChange={(e) => setStudentNameInput(e.target.value)}
               style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-main)', fontSize: '15px', outline: 'none' }}
-              placeholder="Contoh: Muhammad Ali"
+              placeholder={t('placeholderName')}
             />
           </div>
 
-          <button type="submit" className="gradient-btn" disabled={loading} style={{ padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 600, marginTop: '8px', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Sila tunggu...' : 'Log Masuk & Mula Pembelajaran'}
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 600, marginTop: '8px', opacity: loading ? 0.7 : 1 }}>
+            {loading ? t('pleaseWait') : t('loginBtn')}
           </button>
         </form>
       </div>
