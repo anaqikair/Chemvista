@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
-import { User, Users, LogIn, AlertCircle, CheckCircle2, ShieldCheck, Sparkles, X, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Users, LogIn, AlertCircle, CheckCircle2, ShieldCheck, Sparkles, X, ChevronRight, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function UnifiedAuthModal({ onClose, onStudentLoggedIn, onTeacherLoggedIn, currentStudentName }) {
   const { t, language } = useLanguage();
   const [selectedRole, setSelectedRole] = useState('student'); // 'student' or 'teacher'
+
+  // Supabase connection status: 'checking' | 'connected' | 'error'
+  const [dbStatus, setDbStatus] = useState('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+    const ping = async () => {
+      try {
+        const { error } = await supabase.from('student_progress').select('id').limit(1);
+        if (!cancelled) setDbStatus(error ? 'error' : 'connected');
+      } catch {
+        if (!cancelled) setDbStatus('error');
+      }
+    };
+    ping();
+    return () => { cancelled = true; };
+  }, []);
 
   // Student form state
   const [studentNameInput, setStudentNameInput] = useState(currentStudentName || '');
@@ -342,26 +359,77 @@ export default function UnifiedAuthModal({ onClose, onStudentLoggedIn, onTeacher
           </form>
         )}
 
-        {/* Continue as Guest Button */}
-        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-          <button 
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
+        {/* Supabase Connection Status */}
+        <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+          {/* Status indicator row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}>
+            {/* DB status pill */}
+            <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            {t('continueAsGuest')} <ChevronRight size={14} />
-          </button>
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              fontSize: '11.5px',
+              fontWeight: 600,
+              background: dbStatus === 'connected'
+                ? 'rgba(16, 185, 129, 0.12)'
+                : dbStatus === 'error'
+                  ? 'rgba(239, 68, 68, 0.12)'
+                  : 'rgba(234, 179, 8, 0.12)',
+              color: dbStatus === 'connected'
+                ? 'var(--color-stable)'
+                : dbStatus === 'error'
+                  ? 'var(--color-unstable)'
+                  : '#ca8a04',
+              border: `1px solid ${dbStatus === 'connected'
+                ? 'rgba(16, 185, 129, 0.3)'
+                : dbStatus === 'error'
+                  ? 'rgba(239, 68, 68, 0.3)'
+                  : 'rgba(234, 179, 8, 0.3)'}`,
+            }}>
+              {/* Animated dot */}
+              <span style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: dbStatus === 'connected' ? '#10b981' : dbStatus === 'error' ? '#ef4444' : '#eab308',
+                display: 'inline-block',
+                animation: dbStatus === 'checking' ? 'pulse 1.2s infinite' : dbStatus === 'connected' ? 'none' : 'none',
+                boxShadow: dbStatus === 'connected' ? '0 0 6px #10b981' : 'none',
+              }} />
+              {dbStatus === 'checking' && (language === 'en' ? 'Connecting to database...' : 'Menyambung pangkalan data...')}
+              {dbStatus === 'connected' && (language === 'en' ? 'Database connected' : 'Pangkalan data disambung')}
+              {dbStatus === 'error' && (language === 'en' ? 'Database offline (demo mode)' : 'Pangkalan data luar talian (mod demo)')}
+            </div>
+
+            {/* Continue as Guest */}
+            <button
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              {t('continueAsGuest')} <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
