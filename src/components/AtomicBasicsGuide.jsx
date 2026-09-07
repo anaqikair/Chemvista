@@ -35,7 +35,7 @@ export default function AtomicBasicsGuide() {
       content: (
         <div>
           <p style={{ marginBottom: '14px', fontSize: '15px', lineHeight: '1.6' }}>
-            <strong>Elektron</strong> ialah zarah subatom yang bercas negatif ($-1$) dan mempunyai jisim yang sangat kecil (hampir sifar) berbanding proton dan neutron. Elektron beredar mengelilingi nukleus atom di dalam laluan bulatan yang dipanggil <strong>petala elektron</strong>.
+            <strong>Elektron</strong> ialah zarah subatom yang bercas negatif (1⁻) dan mempunyai jisim yang sangat kecil (hampir sifar) berbanding proton dan neutron. Elektron beredar mengelilingi nukleus atom di dalam laluan bulatan yang dipanggil <strong>petala elektron</strong>.
           </p>
           <p style={{ fontSize: '15px', lineHeight: '1.6' }}>
             Setiap petala boleh memuatkan bilangan elektron tertentu: petala pertama maksimum 2 elektron, petala kedua maksimum 8 elektron, dan petala ketiga maksimum 8 elektron (untuk 20 unsur pertama).

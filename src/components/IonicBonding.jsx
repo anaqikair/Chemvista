@@ -7,7 +7,7 @@ import { sounds } from '../utils/audio';
    ========================================================= */
 
 const ELEMENTS_1_20 = [
-  { atomicNumber: 1, name: 'Hydrogen', malayName: 'Hidrogen', symbol: 'H', arrangement: [1], category: 'special', note: 'Kes khas' },
+  { atomicNumber: 1, name: 'Hydrogen', malayName: 'Hidrogen', symbol: 'H', arrangement: [1], category: 'special', note: 'H+' },
   { atomicNumber: 2, name: 'Helium', malayName: 'Helium', symbol: 'He', arrangement: [2], category: 'noble', note: 'Stabil' },
   { atomicNumber: 3, name: 'Lithium', malayName: 'Litium', symbol: 'Li', arrangement: [2, 1], ionType: 'cation', ionCharge: 1 },
   { atomicNumber: 4, name: 'Beryllium', malayName: 'Berilium', symbol: 'Be', arrangement: [2, 2], ionType: 'cation', ionCharge: 2 },
@@ -839,8 +839,7 @@ export default function IonicBonding({ onActionCompleted }) {
         );
       } else {
         setFeedback(
-          `Elektron berjaya dipindahkan. Lagi ${
-            compound.totalElectronsTransferred - nextCount
+          `Elektron berjaya dipindahkan. Lagi ${compound.totalElectronsTransferred - nextCount
           } elektron diperlukan.`
         );
       }
@@ -1031,6 +1030,11 @@ export default function IonicBonding({ onActionCompleted }) {
       atom.index === nextTransfer.receiverIndex &&
       !allElectronsTransferred;
 
+    const hasCharge = atom.electronsChanged > 0;
+    const currentCharge = isMetal ? atom.electronsChanged : -atom.electronsChanged;
+    const chargeString = chargeText(currentCharge);
+    const bR = boundaryRadius + 10;
+
     return (
       <g key={atom.key} transform={`translate(${atom.x}, ${atom.y})`}>
         {isNextReceiver && (
@@ -1071,6 +1075,43 @@ export default function IonicBonding({ onActionCompleted }) {
 
         {renderElectronShells(atom)}
 
+        {/* Square Bracket & Outside Charge for Ions */}
+        {hasCharge && (
+          <g key={`${atom.key}-ion-bracket`}>
+            {/* Left bracket '[' */}
+            <path
+              d={`M ${-bR + 12} ${-bR} L ${-bR} ${-bR} L ${-bR} ${bR} L ${-bR + 12} ${bR}`}
+              fill="none"
+              stroke="var(--text-main)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Right bracket ']' */}
+            <path
+              d={`M ${bR - 12} ${-bR} L ${bR} ${-bR} L ${bR} ${bR} L ${bR - 12} ${bR}`}
+              fill="none"
+              stroke="var(--text-main)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Charge badge outside top-right */}
+            <text
+              x={bR + 6}
+              y={-bR + 14}
+              textAnchor="start"
+              fill={isMetal ? 'var(--accent-blue)' : 'var(--accent-purple)'}
+              style={{
+                fontWeight: 900,
+                fontSize: `${clamp(sceneLayout.layoutRadius * 0.26, 16, 26)}px`
+              }}
+            >
+              {chargeString}
+            </text>
+          </g>
+        )}
+
         <circle
           cx="0"
           cy="0"
@@ -1080,6 +1121,7 @@ export default function IonicBonding({ onActionCompleted }) {
           strokeWidth="2.5"
         />
 
+        {/* Element symbol in center nucleus ONLY */}
         <text
           x="0"
           y={geometry.nucleusRadius * 0.33}
@@ -1090,7 +1132,7 @@ export default function IonicBonding({ onActionCompleted }) {
             fontSize: `${clamp(sceneLayout.layoutRadius * 0.19, 13, 20)}px`
           }}
         >
-          {atom.displaySymbol}
+          {atom.element.symbol}
         </text>
 
         <text
@@ -1108,28 +1150,22 @@ export default function IonicBonding({ onActionCompleted }) {
   };
 
   const targetInstruction = nextTransfer
-    ? `Seret elektron daripada ${selectedMetal.symbol} atom ${
-        nextTransfer.donorIndex + 1
-      } ke ${selectedNonMetal.symbol} atom ${nextTransfer.receiverIndex + 1}.`
+    ? `Seret elektron daripada ${selectedMetal.symbol} atom ${nextTransfer.donorIndex + 1
+    } ke ${selectedNonMetal.symbol} atom ${nextTransfer.receiverIndex + 1}.`
     : '';
 
-  const metalEquation = `${coefficientText(compound.metalCount)}${
-    selectedMetal.symbol
-  } → ${coefficientText(compound.metalCount)}${compound.metalIon} + ${
-    compound.totalElectronsTransferred
-  }e⁻`;
+  const metalEquation = `${coefficientText(compound.metalCount)}${selectedMetal.symbol
+    } → ${coefficientText(compound.metalCount)}${compound.metalIon} + ${compound.totalElectronsTransferred
+    }e⁻`;
 
-  const nonmetalEquation = `${coefficientText(compound.nonmetalCount)}${
-    selectedNonMetal.symbol
-  } + ${compound.totalElectronsTransferred}e⁻ → ${coefficientText(
-    compound.nonmetalCount
-  )}${compound.nonmetalIon}`;
+  const nonmetalEquation = `${coefficientText(compound.nonmetalCount)}${selectedNonMetal.symbol
+    } + ${compound.totalElectronsTransferred}e⁻ → ${coefficientText(
+      compound.nonmetalCount
+    )}${compound.nonmetalIon}`;
 
-  const compoundEquation = `${coefficientText(compound.metalCount)}${
-    compound.metalIon
-  } + ${coefficientText(compound.nonmetalCount)}${
-    compound.nonmetalIon
-  } → ${compound.formula}`;
+  const compoundEquation = `${coefficientText(compound.metalCount)}${compound.metalIon
+    } + ${coefficientText(compound.nonmetalCount)}${compound.nonmetalIon
+    } → ${compound.formula}`;
 
   return (
     <div
@@ -1739,9 +1775,8 @@ export default function IonicBonding({ onActionCompleted }) {
                   left: '50%',
                   width: '52px',
                   height: '52px',
-                  transform: `translate(calc(-50% + ${
-                    attractionProgress * 72
-                  }px), -50%)`,
+                  transform: `translate(calc(-50% + ${attractionProgress * 72
+                    }px), -50%)`,
                   background: 'var(--accent-blue)',
                   border: 'none',
                   borderRadius: '50%',

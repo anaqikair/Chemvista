@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, HelpCircle, Activity } from 'lucide-react';
+import { RefreshCw, HelpCircle, Activity, Sparkles } from 'lucide-react';
 import { sounds } from '../utils/audio';
 
 const SANDBOX_ATOMS = [
@@ -9,11 +9,23 @@ const SANDBOX_ATOMS = [
   { symbol: 'Al', name: 'Aluminium', type: 'metal', valence: 3, config: '2.8.3' },
   { symbol: 'H', name: 'Hidrogen', type: 'nonmetal', valence: 1, config: '1' },
   { symbol: 'C', name: 'Karbon', type: 'nonmetal', valence: 4, config: '2.4' },
-  { symbol: 'N', name: 'Nitrogen', type: 'nonmetal', valence: 5, config: '2.5' },
   { symbol: 'O', name: 'Oksigen', type: 'nonmetal', valence: 6, config: '2.6' },
   { symbol: 'F', name: 'Fluorin', type: 'nonmetal', valence: 7, config: '2.7' },
   { symbol: 'Cl', name: 'Klorin', type: 'nonmetal', valence: 7, config: '2.8.7' }
 ];
+
+function toSubscript(num) {
+  const map = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
+  if (num === 1) return '';
+  return String(num).split('').map(d => map[d] || d).join('');
+}
+
+function chargeText(charge) {
+  const abs = Math.abs(charge);
+  if (charge > 0) return abs === 1 ? '⁺' : `${abs}⁺`;
+  if (charge < 0) return abs === 1 ? '⁻' : `${abs}⁻`;
+  return '';
+}
 
 const CrossMethodAnimation = ({ details }) => {
   if (!details) return null;
@@ -56,9 +68,123 @@ const CrossMethodAnimation = ({ details }) => {
       
       {factor > 1 && (
         <div className="animate-fade-in" style={{ textAlign: 'center', marginTop: '4px', fontSize: '14px', color: 'var(--color-stable)', animationDelay: '3s', animationFillMode: 'both' }}>
-          Diringkaskan (÷{factor}) ➔ <strong style={{ fontSize: '16px' }}>{symbolA}{subA > 1 ? <sub style={{fontSize:'12px'}}>{subA}</sub> : ''}{symbolB}{subB > 1 ? <sub style={{fontSize:'12px'}}>{subB}</sub> : ''}</strong>
+          Diringkaskan (÷{factor}) ➔ <strong style={{ fontSize: '16px' }}>{symbolA}{subA > 1 ? <sub>{subA}</sub> : ''}{symbolB}{subB > 1 ? <sub>{subB}</sub> : ''}</strong>
         </div>
       )}
+    </div>
+  );
+};
+
+/* Interactive SVG Bond Formation Animation Component */
+const BondAnimationRenderer = ({ atomA, atomB, result }) => {
+  if (!atomA || !atomB || !result) return null;
+
+  const isIonic = result.type === 'Ikatan Ionik';
+  const isCovalent = result.type === 'Ikatan Kovalen';
+
+  if (!isIonic && !isCovalent) return null;
+
+  const width = 360;
+  const height = 180;
+
+  if (isIonic) {
+    const metal = atomA.type === 'metal' ? atomA : atomB;
+    const nonmetal = atomA.type === 'metal' ? atomB : atomA;
+    const chargeM = metal.valence;
+    const chargeN = -(8 - nonmetal.valence);
+
+    return (
+      <div className="glass-card animate-fade-in" style={{ marginTop: '16px', padding: '16px', textAlign: 'center' }}>
+        <h4 style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>Simulasi Pembentukan Ikatan Ionik</h4>
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', maxHeight: '180px', overflow: 'visible' }}>
+          {/* Metal Atom / Ion Left */}
+          <g transform="translate(100, 90)">
+            {/* Outer boundary */}
+            <circle cx="0" cy="0" r="45" fill="rgba(37,99,235,0.05)" stroke="var(--accent-blue)" strokeWidth="1.5" strokeDasharray="4,4" />
+            {/* Valence Shell */}
+            <circle cx="0" cy="0" r="32" fill="none" stroke="var(--border-color)" strokeWidth="1" />
+            {/* Nucleus */}
+            <circle cx="0" cy="0" r="16" fill="var(--bg-app)" stroke="var(--border-color)" strokeWidth="2" />
+            <text x="0" y="5" textAnchor="middle" fill="var(--text-main)" style={{ fontWeight: 900, fontSize: '14px' }}>
+              {metal.symbol}
+            </text>
+            
+            {/* Square Bracket & Charge */}
+            <g className="animate-fade-in" style={{ animationDelay: '1.8s', animationFillMode: 'both' }}>
+              <path d="M -40 -50 L -50 -50 L -50 50 L -40 50" fill="none" stroke="var(--text-main)" strokeWidth="2" />
+              <path d="M 40 -50 L 50 -50 L 50 50 L 40 50" fill="none" stroke="var(--text-main)" strokeWidth="2" />
+              <text x="56" y="-38" fill="var(--accent-blue)" style={{ fontWeight: 900, fontSize: '18px' }}>
+                {chargeText(chargeM)}
+              </text>
+            </g>
+          </g>
+
+          {/* Transfer Electron Arrow */}
+          <g transform="translate(100, 90)">
+            <circle cx="32" cy="0" r="5" fill="var(--accent-purple)" className="animate-pulse-ring">
+              <animate attributeName="cx" values="32;128" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="cy" values="0;0" dur="2s" repeatCount="indefinite" />
+            </circle>
+          </g>
+
+          {/* Electrostatic attraction line */}
+          <line x1="150" y1="90" x2="210" y2="90" stroke="var(--accent-cyan)" strokeWidth="2" strokeDasharray="4,4" className="animate-pulse-light" />
+
+          {/* Nonmetal Atom / Ion Right */}
+          <g transform="translate(260, 90)">
+            {/* Outer boundary */}
+            <circle cx="0" cy="0" r="45" fill="rgba(147,51,234,0.05)" stroke="var(--accent-purple)" strokeWidth="1.5" strokeDasharray="4,4" />
+            {/* Valence Shell */}
+            <circle cx="0" cy="0" r="32" fill="none" stroke="var(--border-color)" strokeWidth="1" />
+            {/* Nucleus */}
+            <circle cx="0" cy="0" r="16" fill="var(--bg-app)" stroke="var(--border-color)" strokeWidth="2" />
+            <text x="0" y="5" textAnchor="middle" fill="var(--text-main)" style={{ fontWeight: 900, fontSize: '14px' }}>
+              {nonmetal.symbol}
+            </text>
+            
+            {/* Square Bracket & Charge */}
+            <g className="animate-fade-in" style={{ animationDelay: '1.8s', animationFillMode: 'both' }}>
+              <path d="M -40 -50 L -50 -50 L -50 50 L -40 50" fill="none" stroke="var(--text-main)" strokeWidth="2" />
+              <path d="M 40 -50 L 50 -50 L 50 50 L 40 50" fill="none" stroke="var(--text-main)" strokeWidth="2" />
+              <text x="56" y="-38" fill="var(--accent-purple)" style={{ fontWeight: 900, fontSize: '18px' }}>
+                {chargeText(chargeN)}
+              </text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    );
+  }
+
+  // Covalent bond overlap animation
+  return (
+    <div className="glass-card animate-fade-in" style={{ marginTop: '16px', padding: '16px', textAlign: 'center' }}>
+      <h4 style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>Simulasi Perkongsian Elektron (Ikatan Kovalen)</h4>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', maxHeight: '180px', overflow: 'visible' }}>
+        {/* Overlapping Shells */}
+        <g transform="translate(135, 90)">
+          <circle cx="0" cy="0" r="42" fill="rgba(147,51,234,0.08)" stroke="var(--accent-purple)" strokeWidth="2" />
+          <circle cx="0" cy="0" r="16" fill="var(--bg-app)" stroke="var(--border-color)" strokeWidth="2" />
+          <text x="0" y="5" textAnchor="middle" fill="var(--text-main)" style={{ fontWeight: 900, fontSize: '14px' }}>
+            {atomA.symbol}
+          </text>
+        </g>
+
+        <g transform="translate(225, 90)">
+          <circle cx="0" cy="0" r="42" fill="rgba(37,99,235,0.08)" stroke="var(--accent-blue)" strokeWidth="2" />
+          <circle cx="0" cy="0" r="16" fill="var(--bg-app)" stroke="var(--border-color)" strokeWidth="2" />
+          <text x="0" y="5" textAnchor="middle" fill="var(--text-main)" style={{ fontWeight: 900, fontSize: '14px' }}>
+            {atomB.symbol}
+          </text>
+        </g>
+
+        {/* Shared electrons in overlap zone */}
+        <g transform="translate(180, 90)">
+          <ellipse cx="0" cy="0" rx="20" ry="32" fill="rgba(16,185,129,0.15)" stroke="var(--color-stable)" strokeWidth="1.5" strokeDasharray="3,3" />
+          <circle cx="-6" cy="-8" r="4" fill="var(--accent-purple)" className="animate-float" />
+          <circle cx="6" cy="8" r="4" fill="var(--accent-blue)" className="animate-float" style={{ animationDelay: '0.5s' }} />
+        </g>
+      </svg>
     </div>
   );
 };
@@ -79,6 +205,44 @@ export default function SandboxMode() {
     const isMetalA = atomA.type === 'metal';
     const isMetalB = atomB.type === 'metal';
 
+    // Special Check: Hydrogen (H) or Carbon (C)
+    const isHC_A = atomA.symbol === 'H' || atomA.symbol === 'C';
+    const isHC_B = atomB.symbol === 'H' || atomB.symbol === 'C';
+
+    // Carbon + Oxygen check
+    if ((atomA.symbol === 'C' && atomB.symbol === 'O') || (atomA.symbol === 'O' && atomB.symbol === 'C')) {
+      return {
+        type: 'Ikatan Kovalen',
+        color: 'var(--accent-purple)',
+        formula: 'CO₂',
+        reason: 'Perkongsian elektron (ganda dua).',
+        desc: 'Karbon (2.4) dan Oksigen (2.6) berkongsi elektron untuk mencapai kestabilan oktet dalam molekul Karbon Dioksida (CO₂).',
+        details: {
+          symbolA: 'C',
+          valencyA: 4,
+          symbolB: 'O',
+          valencyB: 2,
+          subA: 1,
+          subB: 2,
+          factor: 2
+        }
+      };
+    }
+
+    // Hydrogen or Carbon combined with Metal
+    if ((isHC_A && isMetalB) || (isMetalA && isHC_B)) {
+      const hcAtom = isHC_A ? atomA : atomB;
+      const metalAtom = isMetalA ? atomA : atomB;
+      return {
+        type: 'Hanya Ikatan Kovalen',
+        color: 'var(--accent-purple)',
+        formula: `Sebatian Kovalen / Hidrida`,
+        reason: 'Unsur ini tidak membentuk ikatan ionik ringkas.',
+        desc: `${hcAtom.name} dan ${metalAtom.name} tidak membentuk ikatan ionik biasa. Hidrogen dan Karbon secara umumnya hanya membentuk ikatan kovalen melalui perkongsian elektron.`,
+        details: null
+      };
+    }
+
     // 1. Metal + Non-metal (Ionic)
     if ((isMetalA && !isMetalB) || (!isMetalA && isMetalB)) {
       const metal = isMetalA ? atomA : atomB;
@@ -93,7 +257,7 @@ export default function SandboxMode() {
       const mSub = nonmetalValency / factor;
       const nSub = metalValency / factor;
       
-      const formula = `${metal.symbol}${mSub > 1 ? mSub : ''}${nonmetal.symbol}${nSub > 1 ? nSub : ''}`;
+      const formula = `${metal.symbol}${toSubscript(mSub)}${nonmetal.symbol}${toSubscript(nSub)}`;
 
       return {
         type: 'Ikatan Ionik',
@@ -128,7 +292,7 @@ export default function SandboxMode() {
         const subA = valB / factor;
         const subB = valA / factor;
         
-        formula = `${atomA.symbol}${subA > 1 ? subA : ''}${atomB.symbol}${subB > 1 ? subB : ''}`;
+        formula = `${atomA.symbol}${toSubscript(subA)}${atomB.symbol}${toSubscript(subB)}`;
       }
 
       return {
@@ -139,12 +303,12 @@ export default function SandboxMode() {
         desc: `Kedua-dua atom bukan logam berkongsi elektron luaran untuk mencapai kestabilan duplet atau oktet.`,
         details: atomA.symbol === atomB.symbol ? null : {
           symbolA: atomA.symbol,
-          valencyA: valA,
+          valencyA: atomA.symbol === 'H' ? 1 : 8 - atomA.valence,
           symbolB: atomB.symbol,
-          valencyB: valB,
-          subA: subA,
-          subB: subB,
-          factor
+          valencyB: atomB.symbol === 'H' ? 1 : 8 - atomB.valence,
+          subA: (atomB.symbol === 'H' ? 1 : 8 - atomB.valence) / gcd(atomA.symbol === 'H' ? 1 : 8 - atomA.valence, atomB.symbol === 'H' ? 1 : 8 - atomB.valence),
+          subB: (atomA.symbol === 'H' ? 1 : 8 - atomA.valence) / gcd(atomA.symbol === 'H' ? 1 : 8 - atomA.valence, atomB.symbol === 'H' ? 1 : 8 - atomB.valence),
+          factor: gcd(atomA.symbol === 'H' ? 1 : 8 - atomA.valence, atomB.symbol === 'H' ? 1 : 8 - atomB.valence)
         }
       };
     }
@@ -277,6 +441,10 @@ export default function SandboxMode() {
                 <strong style={{ fontSize: '16px', color: 'var(--text-main)' }}>{result.formula}</strong>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>{result.desc}</p>
               </div>
+
+              {/* Dynamic Bond Formation Animation */}
+              <BondAnimationRenderer atomA={atomA} atomB={atomB} result={result} />
+
               <CrossMethodAnimation details={result.details} />
             </div>
           ) : (
