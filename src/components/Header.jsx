@@ -1,8 +1,36 @@
-import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone, User, Globe } from 'lucide-react';
+import { Atom, Home, Trophy, BarChart2, Settings, Sun, Moon, Smartphone, User, Globe, LogIn, LogOut, Users } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mobileMode, toggleMobileMode }) {
+export default function Header({ 
+  activeTab, 
+  setActiveTab, 
+  theme, 
+  toggleTheme, 
+  mobileMode, 
+  toggleMobileMode,
+  userRole = 'guest', // 'guest', 'student', 'teacher'
+  studentName = '',
+  onOpenAuthModal,
+  onLogout
+}) {
   const { language, setLanguage, t } = useLanguage();
+
+  // Determine navigation items depending on role
+  const navItems = [
+    { id: 'home', label: t('navHome'), icon: Home }
+  ];
+
+  if (userRole === 'teacher') {
+    navItems.push({ id: 'teacher_dashboard', label: t('navTeacher'), icon: BarChart2 });
+  } else {
+    // Student or Guest navigation
+    navItems.push(
+      { id: 'progress', label: t('navProgress'), icon: BarChart2 },
+      { id: 'achievements', label: t('navAchievements'), icon: Trophy }
+    );
+  }
+
+  navItems.push({ id: 'settings', label: t('navSettings'), icon: Settings });
 
   return (
     <header className="glass" style={{
@@ -47,16 +75,9 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
         </div>
       </div>
 
-      {/* Navigation Links */}
+      {/* Navigation & Role Controls */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {[
-          { id: 'home', label: t('navHome'), icon: Home },
-          { id: 'student_login', label: t('navStudentLogin'), icon: User },
-          { id: 'progress', label: t('navProgress'), icon: BarChart2 },
-          { id: 'achievements', label: t('navAchievements'), icon: Trophy },
-          { id: 'teacher_dashboard', label: t('navTeacher'), icon: BarChart2 },
-          { id: 'settings', label: t('navSettings'), icon: Settings },
-        ].map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -83,6 +104,78 @@ export default function Header({ activeTab, setActiveTab, theme, toggleTheme, mo
             </button>
           );
         })}
+
+        <div style={{
+          height: '24px',
+          width: '1px',
+          background: 'var(--border-color)',
+          margin: '0 4px'
+        }} />
+
+        {/* Auth / Role Controls */}
+        {userRole === 'guest' ? (
+          <button
+            onClick={onOpenAuthModal}
+            className="gradient-btn"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <LogIn size={15} />
+            <span>{t('navLogin')}</span>
+          </button>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* User Role Badge */}
+            <div style={{
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '20px',
+              padding: '4px 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: userRole === 'teacher' ? 'var(--accent-purple)' : 'var(--accent-blue)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              {userRole === 'teacher' ? <Users size={14} /> : <User size={14} />}
+              <span>
+                {userRole === 'teacher' 
+                  ? `${t('roleTeacher')}` 
+                  : `${t('roleStudent')}: ${studentName || ''}`}
+              </span>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={onLogout}
+              className="btn"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid var(--color-unstable)',
+                color: 'var(--color-unstable)',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '13px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+              title={t('navLogout')}
+            >
+              <LogOut size={14} />
+              <span>{t('navLogout')}</span>
+            </button>
+          </div>
+        )}
 
         <div style={{
           height: '24px',

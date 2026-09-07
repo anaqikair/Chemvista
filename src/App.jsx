@@ -9,7 +9,7 @@ import InteractiveQuiz from './components/InteractiveQuiz';
 import ProgressDashboard from './components/ProgressDashboard';
 import Achievements from './components/Achievements';
 import TeacherDashboard from './components/TeacherDashboard';
-import StudentAuth from './components/StudentAuth';
+import UnifiedAuthModal from './components/UnifiedAuthModal';
 import { Compass, Atom, HelpCircle, FlaskConical, BookOpen, Globe } from 'lucide-react';
 import { sounds } from './utils/audio';
 import { useLanguage } from './context/LanguageContext';
@@ -19,11 +19,15 @@ import { supabase } from './supabaseClient';
 
 export default function App() {
   const { language, setLanguage, t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('home'); // home, progress, achievements, settings, ionic, covalent, sandbox, guide, quiz, student_login, teacher_dashboard
+  const [activeTab, setActiveTab] = useState('home'); 
   const [theme, setTheme] = useState(() => localStorage.getItem('chemvista_theme') || 'light');
   const [mobileMode, setMobileMode] = useState(false);
+
+  // Role & Auth State
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('chemvista_user_role') || 'guest');
   const [studentName, setStudentName] = useState(() => localStorage.getItem('chemvista_student_name') || '');
-  
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   // Progress states
   const [userProgress, setUserProgress] = useState(() => {
     const saved = localStorage.getItem('chemvista_progress');
@@ -41,15 +45,16 @@ export default function App() {
     localStorage.setItem('chemvista_theme', theme);
   }, [theme]);
 
-  // Sync progress to LocalStorage & Supabase
+  // Sync progress & role to LocalStorage
   useEffect(() => {
     localStorage.setItem('chemvista_progress', JSON.stringify(userProgress));
     localStorage.setItem('chemvista_student_name', studentName);
+    localStorage.setItem('chemvista_user_role', userRole);
 
-    if (studentName.trim().length > 0) {
+    if (userRole === 'student' && studentName.trim().length > 0) {
       syncToSupabase(studentName, userProgress);
     }
-  }, [userProgress, studentName]);
+  }, [userProgress, studentName, userRole]);
 
   const syncToSupabase = async (name, progress) => {
     try {
@@ -103,13 +108,17 @@ export default function App() {
   const handleStudentLoggedIn = (studentObj) => {
     if (!studentObj) {
       setStudentName('');
+      setUserRole('guest');
       localStorage.removeItem('chemvista_student_name');
+      localStorage.setItem('chemvista_user_role', 'guest');
       return;
     }
 
     const { name, data } = studentObj;
     setStudentName(name);
+    setUserRole('student');
     localStorage.setItem('chemvista_student_name', name);
+    localStorage.setItem('chemvista_user_role', 'student');
 
     if (data) {
       setUserProgress(prev => ({
@@ -119,6 +128,26 @@ export default function App() {
         quizHighScore: Math.max(prev.quizHighScore || 0, data.quiz_score || 0)
       }));
     }
+  };
+
+  const handleTeacherLoggedIn = (session) => {
+    setUserRole('teacher');
+    localStorage.setItem('chemvista_user_role', 'teacher');
+    setActiveTab('teacher_dashboard');
+  };
+
+  const handleLogout = async () => {
+    sounds.playElectron();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+    setUserRole('guest');
+    setStudentName('');
+    localStorage.setItem('chemvista_user_role', 'guest');
+    localStorage.removeItem('chemvista_student_name');
+    setActiveTab('home');
   };
 
   const renderScreen = () => {
@@ -144,8 +173,6 @@ export default function App() {
         return <Achievements userProgress={userProgress} />;
       case 'settings':
         return renderSettingsScreen();
-      case 'student_login':
-        return <StudentAuth onStudentLoggedIn={handleStudentLoggedIn} currentStudentName={studentName} />;
       case 'teacher_dashboard':
         return <TeacherDashboard />;
       default:
@@ -349,13 +376,34 @@ export default function App() {
 
   return (
     <div id="root">
-      <Header activeTab={activeTab} setActiveTab={handleMenuClick} theme={theme} toggleTheme={toggleTheme} mobileMode={mobileMode} toggleMobileMode={() => setMobileMode(!mobileMode)} />
+      <Header 
+        activeTab={activeTab} 
+        setActiveTab={handleMenuClick} 
+        theme={theme} 
+        toggleTheme={toggleTheme} 
+        mobileMode={mobileMode} 
+        toggleMobileMode={() => setMobileMode(!mobileMode)}
+        userRole={userRole}
+        studentName={studentName}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
+      />
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
         <div className={mobileMode ? 'mobile-scale-container' : ''} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {renderScreen()}
         </div>
       </main>
       <Footer />
+
+      {/* Unified Auth Modal */}
+      {isAuthModalOpen && (
+        <UnifiedAuthModal 
+          onClose={() => setIsAuthModalOpen(false)}
+          onStudentLoggedIn={handleStudentLoggedIn}
+          onTeacherLoggedIn={handleTeacherLoggedIn}
+          currentStudentName={studentName}
+        />
+      )}
     </div>
   );
 }
